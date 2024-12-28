@@ -8,4 +8,4 @@ set(CMAKE_CXX_STANDARD 17)
 include_directories(src)
 
 # Add source files and create executable
-add_executable(xylonet main.cpp src/transaction.h)
+add_executable(xylonet main.cpp src/transaction.h "src/user.h" "src/network.h" "src/wallet.h")

@@ -19,6 +19,10 @@ Makefile
 *.exe
 *.out
 
+.vs/
+*.vsix
+
+
 # Ignore debugging files
 *.dSYM/
 
