@@ -8,25 +8,23 @@
 #include <algorithm>
 #include "User.h"
 
+
 using namespace std;
 
 class Network {
 private:
-    vector<User> users;  // Store user objects
-    unordered_map<string, User*> userMap;  // Map for quick user access
-    unordered_map<string, vector<string>> connections;  // Adjacency list for connections
+    vector<User> users;
+    unordered_map<string, User*> userMap;
+    unordered_map<string, vector<string>> connections;
 
 public:
-    // Add a user to the network and connect them to all existing users
     void addUser(const User& user) {
         cout << "Adding user: " << user.getUsername() << endl;
         string username = user.getUsername();
 
-        // Add user to the users list and initialize connections
         users.push_back(user);
-        connections[username] = {};  // Initialize empty connections
+        connections[username] = {};
 
-        // Connect this user to all existing users without printing connection messages
         for (const auto& existingUser : users) {
             string existingUsername = existingUser.getUsername();
             if (existingUsername != username) {
@@ -36,7 +34,6 @@ public:
         }
     }
 
-    // List all users in the network
     void listUsers() const {
         cout << "Users in the Network:" << endl;
         for (const auto& user : users) {
@@ -44,7 +41,6 @@ public:
         }
     }
 
-    // Login user by username and password
     bool loginUser(const string& username, const string& password) {
         for (const auto& user : users) {
             if (user.getUsername() == username) {
@@ -61,7 +57,6 @@ public:
         return false;
     }
 
-    // Send a message to a connected user
     void sendMessage(const string& fromUsername, const string& toUsername, const string& message) {
         if (connections[fromUsername].empty()) {
             cout << fromUsername << " has no connections to send messages!" << endl;
@@ -76,7 +71,6 @@ public:
         }
     }
 
-    // Transfer funds between users
     bool transferFunds(const string& senderUsername, const string& recipientUsername, double amount) {
         User* sender = getUser(senderUsername);
         User* recipient = getUser(recipientUsername);
@@ -100,12 +94,10 @@ public:
         }
     }
 
-
-    // Retrieve user object by username
     User* getUser(const string& username) {
         for (auto& user : users) {
             if (user.getUsername() == username) {
-                return &user;  // Return the address of the user
+                return &user;
             }
         }
         return nullptr;

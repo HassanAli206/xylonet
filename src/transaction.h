@@ -1,111 +1,45 @@
 #ifndef TRANSACTION_H
 #define TRANSACTION_H
 
-#include <iostream>
 #include <string>
+#include <ctime>
 #include <vector>
-#include <ctime>  // For timestamp functionality
+#include <memory>
 
-using namespace std;
-
-// Enum for transaction type
-enum TransactionType {
-    DEPOSIT,
-    WITHDRAWAL,
-    TRANSFER
-};
-
-// Class to represent a transaction
 class Transaction {
 private:
-    TransactionType type;
+    std::string id;
+    std::string sender;
+    std::string receiver;
     double amount;
-    string sender;
-    string receiver;
-    time_t timestamp;
+    double fee;
+    std::time_t timestamp;
+    std::string signature;
+    std::vector<std::shared_ptr<Transaction>> parentReferences;
+    bool isValidated;
 
 public:
-    // Constructor for deposit and withdrawal (no sender/receiver needed)
-    Transaction(TransactionType type, double amount, string sender = "", string receiver = "") {
-        this->type = type;
-        this->amount = amount;
-        this->sender = sender;
-        this->receiver = receiver;
-        this->timestamp = time(nullptr);  // Get the current time as timestamp
+    Transaction() : id(""), sender(""), receiver(""), amount(0.0), fee(0.0),
+        timestamp(0), signature(""), isValidated(false) {
     }
 
-    // Function to display the transaction details
-    void displayTransaction() const {
-        cout << "Transaction Type: ";
-        switch (type) {
-        case DEPOSIT: cout << "Deposit"; break;
-        case WITHDRAWAL: cout << "Withdrawal"; break;
-        case TRANSFER: cout << "Transfer from " << sender << " to " << receiver; break;
-        }
-        cout << "\nAmount: " << amount << endl;
-        cout << "Timestamp: " << ctime(&timestamp);  // Print the formatted date and time
-    }
+    Transaction(const std::string& id, const std::string& sender, const std::string& receiver, double amount, double fee,
+        std::time_t timestamp, const std::string& signature, const std::vector<std::shared_ptr<Transaction>>& parentReferences = {});
 
-    // Getter functions
-    TransactionType getType() const {
-        return type;
-    }
+    void print() const;
 
-    double getAmount() const {
-        return amount;
-    }
+    std::string getId() const;
+    std::string getSender() const;
+    std::string getReceiver() const;
+    double getAmount() const;
+    double getFee() const;
+    std::time_t getTimestamp() const;
+    std::vector<std::shared_ptr<Transaction>> getParentReferences() const;
+    bool getValidationStatus() const;
 
-    string getSender() const {
-        return sender;
-    }
+    void validate();
 
-    string getReceiver() const {
-        return receiver;
-    }
-
-    time_t getTimestamp() const {
-        return timestamp;
-    }
+    void invalidate();
 };
 
-// Class to handle all transactions
-class TransactionManager {
-private:
-    vector<Transaction> transactions;  // List to store all transactions
-
-public:
-    // Function to add a transaction to the history
-    void addTransaction(TransactionType type, double amount, string sender = "", string receiver = "") {
-        Transaction newTransaction(type, amount, sender, receiver);
-        transactions.push_back(newTransaction);
-        cout << "Transaction added successfully!" << endl;
-    }
-
-    // Function to display all transactions in the history
-    void viewTransactionHistory() const {
-        if (transactions.empty()) {
-            cout << "No transactions available!" << endl;
-            return;
-        }
-
-        cout << "Transaction History:" << endl;
-        for (const auto& transaction : transactions) {
-            transaction.displayTransaction();
-        }
-    }
-
-    // Function to validate a transaction (could be expanded for additional rules later)
-    bool validateTransaction(double amount, double balance, TransactionType type) {
-        if (type == WITHDRAWAL && amount > balance) {
-            cout << "Insufficient balance!" << endl;
-            return false;
-        }
-        if (amount <= 0) {
-            cout << "Amount must be greater than zero!" << endl;
-            return false;
-        }
-        return true;
-    }
-};
-
-#endif
+#endif // TRANSACTION_H

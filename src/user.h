@@ -2,95 +2,36 @@
 #define USER_H
 
 #include <iostream>
-#include <algorithm>  // For transform function
-
 #include <string>
-#include "Wallet.h"  // Include the Wallet class
+#include "Wallet.h"
 
 using namespace std;
 
-// User class to handle user-related functionality
 class User {
 private:
-    string username;
-    string password;
-    string email;
-    Wallet wallet;  // Each user has an associated wallet
+    std::string username;
+    std::string password;
+    std::string email;
+    Wallet wallet;
 
 public:
-    // Constructor with initial wallet balance
-    User(string username, string password, string email, double initialBalance = 0.0)
-        : username(username), password(password), email(email), wallet(initialBalance) {
-    }
+    User(const std::string& username, const std::string& password, const std::string& email, double initialBalance);
 
-    // Getters for user details
-    string getUsername() const {
-        return username;
-    }
+    Wallet& getWallet();
 
-    string getEmail() const {
-        return email;
-    }
+    std::string getUsername() const;
+    std::string getEmail() const;
+    double getWalletBalance() const;
 
-    double getWalletBalance() const {
-        return wallet.getBalance();
-    }
+    void displayUserInfo() const;
 
-    // Function to display user information
-    void displayUserInfo() const {
-        cout << "Username: " << username << endl;
-        cout << "Email: " << email << endl;
-        cout << "Wallet Balance: " << wallet.getBalance() << endl;
-    }
+    bool validateLogin(const std::string& inputUsername, const std::string& inputPassword) const;
 
-    // Function to validate user's login credentials
+    void depositToWallet(double amount);
 
-    bool validateLogin(const string& inputUsername, const string& inputPassword) const {
-        // Copy the stored values to temporary variables for case-insensitive comparison
-        string storedUsername = username;  // This is the const member
-        string storedPassword = password;  // This is the const member
+    bool withdrawFromWallet(double amount);
 
-        // Convert both to lowercase for case-insensitive comparison
-        transform(storedUsername.begin(), storedUsername.end(), storedUsername.begin(), ::tolower);
-        string lowerInputUsername = inputUsername;
-        transform(lowerInputUsername.begin(), lowerInputUsername.end(), lowerInputUsername.begin(), ::tolower);
-
-        transform(storedPassword.begin(), storedPassword.end(), storedPassword.begin(), ::tolower);
-        string lowerInputPassword = inputPassword;
-        transform(lowerInputPassword.begin(), lowerInputPassword.end(), lowerInputPassword.begin(), ::tolower);
-
-        // Compare the lowercase versions
-        return (storedUsername == lowerInputUsername && storedPassword == lowerInputPassword);
-    }
-
-    // Wallet functionalities
-    Wallet& getWallet() {
-        return wallet;  // Provide access to the wallet for transactions
-    }
-
-    // Function to deposit funds into the user's wallet
-    void depositToWallet(double amount) {
-        wallet.addFunds(amount);
-        cout << "Successfully deposited " << amount << " to wallet." << endl;
-    }
-
-    // Function to withdraw funds from the user's wallet
-    bool withdrawFromWallet(double amount) {
-        if (wallet.deductFunds(amount)) {
-            cout << "Successfully withdrew " << amount << " from wallet." << endl;
-            return true;
-        }
-        else {
-            cout << "Insufficient funds for withdrawal!" << endl;
-            return false;
-        }
-    }
-
-    // Function to view transaction history
-    void viewWalletTransactions() const {
-        cout << "Transaction History for " << username << ":" << endl;
-        wallet.viewTransactionHistory();
-    }
+    void viewWalletTransactions() const;
 };
 
 #endif

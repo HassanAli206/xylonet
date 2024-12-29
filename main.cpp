@@ -1,8 +1,8 @@
 #include <iostream>
 #include "src/Transaction.h"
 #include "src/User.h"
-#include "src/Network.h"
-
+#include "src/Network.h"  // Assuming Network is a class for managing users
+#include "src/xylonet.h"
 using namespace std;
 
 int main() {
@@ -45,7 +45,7 @@ int main() {
     if (network.loginUser(username, password)) {
         cout << "\nLogin successful!" << endl;
 
-        // Display user information
+        // Get logged-in user
         User* loggedInUser = network.getUser(username);
         cout << "Looking for user: " << username << endl;
         if (loggedInUser) {
@@ -54,52 +54,8 @@ int main() {
             cout << "Email: " << loggedInUser->getEmail() << endl;
             cout << "Wallet Balance: " << loggedInUser->getWalletBalance() << " units." << endl;
 
-            // Debugging message to verify the loop
-            cout << "Entering menu loop..." << endl;
-
-            // Allow user to perform tasks
-            char choice;
-            do {
-                cout << "\nAvailable actions:" << endl;
-                cout << "1. Send a transaction" << endl;
-                cout << "2. View wallet balance" << endl;
-                cout << "3. Logout" << endl;
-                cout << "Enter your choice: ";
-                cin >> choice;
-
-                switch (choice) {
-                case '1': {
-                    // Send a transaction
-                    string recipientUsername;
-                    double amount;
-
-                    cout << "Enter the username of the recipient: ";
-                    cin >> recipientUsername;
-                    cout << "Enter the amount to transfer: ";
-                    cin >> amount;
-
-                    if (network.transferFunds(loggedInUser->getUsername(), recipientUsername, amount)) {
-                        cout << "Transaction successful!" << endl;
-                    }
-                    else {
-                        cout << "Transaction failed!" << endl;
-                    }
-
-                    break;
-                }
-                case '2':
-                    // Display wallet balance
-                    cout << "Your current wallet balance is: " << loggedInUser->getWalletBalance() << " units." << endl;
-                    break;
-                case '3':
-                    // Logout
-                    cout << "Logging out..." << endl;
-                    break;
-                default:
-                    cout << "Invalid choice! Please try again." << endl;
-                    break;
-                }
-            } while (choice != '3');
+            // Now we call the modified createTransactionExample
+            createTransactionExample(*loggedInUser, network);
         }
         else {
             cout << "User not found!" << endl;
