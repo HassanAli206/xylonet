@@ -34,22 +34,14 @@ void createTransactionExample(User& loggedInUser, Network& network) {
         Wallet& senderWallet = loggedInUser.getWallet();
         Wallet& recipientWallet = recipient->getWallet();
 
-        if (senderWallet.transferFunds(recipientWallet, amount, loggedInUser.getUsername(), recipient->getUsername())) {
-            std::cout << "Transaction successful!\n";
+        // Perform the transfer
+        senderWallet.transferFunds(recipientWallet, amount, loggedInUser.getUsername(), recipient->getUsername());
 
-            // Create a new transaction and print it
-            DAG transactionGraph;
-            auto txn = transactionGraph.createTransaction("txn1", loggedInUser.getUsername(), recipient->getUsername(), amount, 0.5, "signature1");
-            txn->print();
-        }
-        else {
-            std::cout << "Transaction failed due to insufficient funds.\n";
-        }
+        std::cout << "Transaction successful!\n";
 
-        // Display updated user info after transaction
-        loggedInUser.displayUserInfo();
-        recipient->displayUserInfo();
-
+        // Now create a transaction and print it
+        auto txn = network.getDAG().createTransaction("txn1", loggedInUser.getUsername(), recipient->getUsername(), amount, 0.5, "signature1", "");
+        txn->print();  // Print transaction details
     }
     catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;

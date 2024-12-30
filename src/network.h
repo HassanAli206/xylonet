@@ -7,7 +7,7 @@
 #include <string>
 #include <algorithm>
 #include "User.h"
-
+#include "DAG.h"  // Include DAG header to use DAG class
 
 using namespace std;
 
@@ -16,23 +16,44 @@ private:
     vector<User> users;
     unordered_map<string, User*> userMap;
     unordered_map<string, vector<string>> connections;
+    DAG dag;  // Adding DAG instance to Network
 
 public:
-    void addUser(const User& user) {
-        cout << "Adding user: " << user.getUsername() << endl;
-        string username = user.getUsername();
+    // Constructor accepts DAG instance
+    Network(DAG& dagInstance) : dag(dagInstance) {}
 
-        users.push_back(user);
-        connections[username] = {};
+    // Network.cpp
+#include "Network.h"
+#include <iostream>
 
+    bool Network::addUser(const User& user) {
+        std::cout << "Adding user: " << user.getUsername() << std::endl;
+        std::string username = user.getUsername();
+
+        // Check if the user already exists
         for (const auto& existingUser : users) {
-            string existingUsername = existingUser.getUsername();
-            if (existingUsername != username) {
-                connections[username].push_back(existingUsername);
-                connections[existingUsername].push_back(username);
+            if (existingUser.getUsername() == username) {
+                std::cout << "Error: User with username " << username << " already exists." << std::endl;
+                return false;  // User already exists, return false
             }
         }
+
+        // If user doesn't exist, add the user
+        users.push_back(user);
+        connections[username] = {};  // Initialize the user's connection list
+
+        // Now, update the connections for the new user and the existing users
+        for (const auto& existingUser : users) {
+            std::string existingUsername = existingUser.getUsername();
+            if (existingUsername != username) {
+                connections[username].push_back(existingUsername);
+                connections[existingUsername].push_back(username);  // This step is to create bidirectional connections
+            }
+        }
+
+        return true;  // Successfully added the user
     }
+
 
     void listUsers() const {
         cout << "Users in the Network:" << endl;
@@ -71,28 +92,30 @@ public:
         }
     }
 
-    bool transferFunds(const string& senderUsername, const string& recipientUsername, double amount) {
+    bool transferFunds(const std::string& senderUsername, const std::string& recipientUsername, double amount) {
         User* sender = getUser(senderUsername);
         User* recipient = getUser(recipientUsername);
 
         if (!sender) {
-            cout << "Sender not found in the network!" << endl;
+            std::cout << "Sender not found in the network!" << std::endl;
             return false;
         }
         if (!recipient) {
-            cout << "Recipient not found in the network!" << endl;
+            std::cout << "Recipient not found in the network!" << std::endl;
             return false;
         }
 
-        if (sender->getWallet().transferFunds(recipient->getWallet(), amount, senderUsername, recipientUsername)) {
-            cout << "Funds transferred successfully from " << senderUsername << " to " << recipientUsername << "!" << endl;
+        try {
+            sender->getWallet().transferFunds(recipient->getWallet(), amount, senderUsername, recipientUsername);
+            std::cout << "Funds transferred successfully from " << senderUsername << " to " << recipientUsername << "!" << std::endl;
             return true;
         }
-        else {
-            cout << "Transfer failed!" << endl;
+        catch (const std::invalid_argument& e) {
+            std::cout << "Transfer failed: " << e.what() << std::endl;
             return false;
         }
     }
+
 
     User* getUser(const string& username) {
         for (auto& user : users) {
@@ -101,6 +124,11 @@ public:
             }
         }
         return nullptr;
+    }
+
+    // Access the DAG instance
+    DAG& getDAG() {
+        return dag;
     }
 };
 

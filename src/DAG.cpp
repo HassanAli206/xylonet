@@ -1,4 +1,5 @@
 #include "DAG.h"
+#include <stdexcept>
 
 std::shared_ptr<Transaction> DAG::createTransaction(const std::string& id, const std::string& sender,
     const std::string& receiver, double amount, double fee, const std::string& signature,
@@ -6,12 +7,11 @@ std::shared_ptr<Transaction> DAG::createTransaction(const std::string& id, const
 
     std::vector<std::shared_ptr<Transaction>> parentRefs;
     if (!parentId.empty()) {
-        auto parentTxn = getTransactionById(parentId);
+        auto parentTxn = getTransactionById(parentId);  // Will throw an exception if parentId is not found.
         parentRefs.push_back(parentTxn);
     }
 
     auto txn = std::make_shared<Transaction>(id, sender, receiver, amount, fee, std::time(nullptr), signature, parentRefs);
-
     addTransaction(txn);
 
     return txn;
@@ -66,4 +66,80 @@ bool DAG::isCyclic(const std::shared_ptr<Transaction>& txn, const std::shared_pt
     }
 
     return false;
+}
+
+double DAG::calculateBalance(const std::string& userId) const {
+    double balance = 0.0;
+
+    for (const auto& [txnId, txn] : transactions) {
+        if (txn->getSender() == userId) {
+            balance -= txn->getAmount();
+        }
+        else if (txn->getReceiver() == userId) {
+            balance += txn->getAmount();
+        }
+    }
+
+    return balance;
+}
+
+std::vector<std::shared_ptr<Transaction>> DAG::getAncestry(const std::shared_ptr<Transaction>& txn) const {
+    std::vector<std::shared_ptr<Transaction>> ancestry;
+
+    for (const auto& parent : txn->getParentReferences()) {
+        ancestry.push_back(parent);
+        auto parentAncestry = getAncestry(parent);
+        ancestry.insert(ancestry.end(), parentAncestry.begin(), parentAncestry.end());
+    }
+
+    return ancestry;
+}
+
+std::vector<std::shared_ptr<Transaction>> DAG::getDescendants(const std::shared_ptr<Transaction>& txn) const {
+    std::vector<std::shared_ptr<Transaction>> descendants;
+
+    for (const auto& [txnId, candidateTxn] : transactions) {
+        for (const auto& parent : candidateTxn->getParentReferences()) {
+            if (parent->getId() == txn->getId()) {
+                descendants.push_back(candidateTxn);
+                auto childDescendants = getDescendants(candidateTxn);
+                descendants.insert(descendants.end(), childDescendants.begin(), childDescendants.end());
+            }
+        }
+    }
+
+    return descendants;
+}
+
+// New method to add funds to a user’s wallet (updates the user's balance)
+void DAG::addFundsToUser(const std::string& userId, double amount) {
+    if (amount <= 0) {
+        throw std::invalid_argument("Amount to deposit must be positive.");
+    }
+
+    // Create a deposit transaction (without a fee)
+    std::string txnId = "deposit" + std::to_string(std::time(nullptr)); // Unique transaction ID
+    auto txn = createTransaction(txnId, "", userId, amount, 0.0, "", "");
+
+    // You can implement further logic here (e.g., adding a deposit record or logging)
+}
+
+// New method to subtract funds from a user’s wallet (checks for sufficient balance)
+bool DAG::subtractFundsFromUser(const std::string& userId, double amount) {
+    if (amount <= 0) {
+        throw std::invalid_argument("Amount to withdraw must be positive.");
+    }
+
+    // Check if the user has sufficient funds
+    double currentBalance = calculateBalance(userId);
+    if (currentBalance < amount) {
+        throw std::invalid_argument("Insufficient funds for withdrawal.");
+    }
+
+    // Create a withdrawal transaction (with a fee, if needed)
+    std::string txnId = "withdraw" + std::to_string(std::time(nullptr)); // Unique transaction ID
+    auto txn = createTransaction(txnId, userId, "", amount, 0.0, "", "");
+
+    // You can implement further logic here (e.g., logging withdrawal)
+    return true;
 }
